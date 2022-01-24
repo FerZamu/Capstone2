@@ -1,4 +1,4 @@
-import airflow
+dimport airflow
 import os
 import psycopg2
 from airflow import DAG
@@ -16,10 +16,10 @@ Load CSV > Postgres in GCP Cloud SQL Instance
 #default arguments 
 
 default_args = {
-    'owner': 'juan.escobar',
+    'owner': 'fernanda.zamudio',
     'depends_on_past': False,    
     'start_date': datetime(2021, 10, 1),
-    'email': ['juan.escobar@wizeline.com'],
+    'email': ['fernanda.zamudio@wizeline.com'],
     'email_on_failure': True,
     'email_on_retry': False,
     'retries': 2,
@@ -44,25 +44,23 @@ def csv_to_postgres():
     get_postgres_conn = PostgresHook(postgres_conn_id='postgres_default').get_conn()
     curr = get_postgres_conn.cursor()
     # CSV loading to table
-    with open(file_path("/custom_modules/assets/cities_clean.csv"), "r") as f:
+    with open(file_path("/Downloads/user_purchase.csv"), "r") as f:
         next(f)
-        curr.copy_from(f, 'cities', sep=",")
+        curr.copy_from(f, 'user_purchase', sep=",")
         get_postgres_conn.commit()
 
 #Task 
 task1 = PostgresOperator(task_id = 'create_table',
                         sql="""
-                        CREATE TABLE IF NOT EXISTS cities (    
-                            LatD INTEGER,
-                            LatM INTEGER,
-                            LatS INTEGER,
-                            NS VARCHAR(255),
-                            LonD INTEGER,
-                            LonM INTEGER,
-                            LonS INTEGER,
-                            EW VARCHAR(255), 
-                            City VARCHAR(255),
-                            State VARCHAR(255));
+                      CREATE TABLE IF NOT EXISTS user_purchase (
+                          invoice_number VARCHAR(10),
+                          stock_code VARCHAR(20),
+                          detail VARCHAR(1000),
+                          quantity INTEGER,
+                          invoice_date timestamp,
+                          unit_price INTEGER,
+                          customer_id VARCHAR(20),
+                          country VARCHAR(20));
                             """,
                             postgres_conn_id= 'postgres_default', 
                             autocommit=True,
