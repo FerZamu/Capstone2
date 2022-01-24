@@ -1,23 +1,14 @@
--- Table: bootcampdb.products
+-- Table: bootcampdb.user_purchases
 
-DROP TABLE IF EXISTS bootcampdb.products;
+CREATE SCHEMA IF NOT EXISTS bootcampdb;
 
-CREATE TABLE IF NOT EXISTS bootcampdb.products
-(
-    id SERIAL PRIMARY KEY,
-    producto VARCHAR(255),
-    presentacion VARCHAR(255),
-    marca VARCHAR(255),
-    categoria VARCHAR(255),
-    catalogo VARCHAR(255),
-    precio FLOAT,
-    fecharegistro DATE,
-    cadenacomercial VARCHAR(255),
-    giro VARCHAR(255),
-    nombrecomercial VARCHAR(255),
-    direccion VARCHAR(255),
-    estado VARCHAR(255),
-    municipio VARCHAR(255),
-    latitud FLOAT,
-    longitud FLOAT    
+CREATE TABLE IF NOT EXISTS bootcampdb.user_purchases (
+    invoice_number VARCHAR(10),
+    stock_code VARCHAR(20),
+    detail VARCHAR(1000),
+    quantity BIGINT,
+    invoice_date timestamp,
+    unit_price NUMERIC(8,3),
+    customer_id VARCHAR(20),
+    country VARCHAR(20)
 );
