@@ -1,4 +1,4 @@
-dimport airflow
+import airflow
 import os
 import psycopg2
 from airflow import DAG
