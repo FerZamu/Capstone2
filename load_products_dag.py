@@ -91,7 +91,6 @@ class S3ToPostgresTransfer(BaseOperator):
                     'stock_code': 'string',
                     'detail': 'string',
                     'quantity': 'float',
-                    'invoice_date': 'string',
                     'unit_price': 'float',                                
                     'customer_id': 'float',
                     'country': 'string'
@@ -148,50 +147,11 @@ class S3ToPostgresTransfer(BaseOperator):
                   
             s3_sql_key = self.s3.get_key(nombre_de_archivo, self.s3_bucket)
             self.log.info(s3_sql_key)
-        SQL_COMMAND_CREATE_TBL = s3_sql_key.get()["Body"].read()    
+        SQL_COMMAND_CREATE_TBL = s3_sql_key.get()["Body"].read().decode(encoding = "utf-8", errors = "ignore")    
         self.log.info(SQL_COMMAND_CREATE_TBL)  
         
 
-        # execute command to create table in postgres.  
-        self.pg_hook.run(SQL_COMMAND_CREATE_TBL)  
-        
-        # set the columns to insert, in this case we ignore the id, because is autogenerate.
-        list_target_fields = ['invoice_number', 
-                              'stock_code',
-                              'detail', 
-                              'quantity', 
-                              'invoice_date', 
-                              'unit_price', 
-                              'customer_id', 
-                              'country']
-        
-        self.current_table = self.schema + '.' + self.table
-        self.pg_hook.insert_rows(self.current_table,  
-                                 list_df_products, 
-                                 target_fields = list_target_fields, 
-                                 commit_every = 1000,
-                                 replace = False)
-
-        # Query and print the values of the table products in the console.
-        self.request = 'SELECT * FROM ' + self.current_table
-        self.log.info(self.request)
-        self.connection = self.pg_hook.get_conn()
-        self.cursor = self.connection.cursor()
-        self.cursor.execute(self.request)
-        self.sources = self.cursor.fetchall()
-        self.log.info(self.sources)
-
-        for source in self.sources:           
-            self.log.info("invoice_number: {0} - \
-                           stock_code: {1} - \
-                           detail: {2} - \
-                           quantity: {3} - \
-                           invoice_date: {4} - \
-                           unit_price: {5} - \
-                           customer_id: {6} - \
-                           country: {7} ".format(source[0],source[1],source[2],source[3],source[4],source[5], 
-                                                   source[6],
-                                                   source[7]))      
+        ############# 
             
            
 
