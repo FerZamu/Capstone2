@@ -136,9 +136,9 @@ class S3ToPostgresTransfer(BaseOperator):
 
             #Display the content 
         SQL_COMMAND_CREATE_TBL = """
-       CREATE SCHEMA IF NOT EXISTS dbname;
+       CREATE SCHEMA IF NOT EXISTS bootcampdb;
 
-       CREATE TABLE IF NOT EXISTS dbname.user_purchases (
+       CREATE TABLE IF NOT EXISTS bootcampdb.user_purchase (
                 invoice_number VARCHAR(10),
                 stock_code VARCHAR(20),
                 detail VARCHAR(1000),
