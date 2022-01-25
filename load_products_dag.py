@@ -30,8 +30,9 @@ welcome_operator = PythonOperator(task_id='welcome_task',
 #                           aws_conn_postgres_id = 'postgres_default',
 #                            aws_conn_id = 'aws_default',   
 #                           dag = dag
-)
+#)
 
-s3_to_postgres_operator
+#s3_to_postgres_operator
+welcome_operator
 
 #welcome_operator.set_downstream(s3_to_postgres_operator)
