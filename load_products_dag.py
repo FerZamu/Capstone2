@@ -120,7 +120,7 @@ class S3ToPostgresTransfer(BaseOperator):
         self.log.info(list_df_products)   
        
         # Read the file with the DDL SQL to create the table products in postgres DB.
-        nombre_de_archivo = "bootcampdb.user_purchase.sql"
+        nombre_de_archivo = "dbname.user_purchase.sql"
         
         #ruta_archivo = os.path.sep + nombre_de_archivo
         #self.log.info(ruta_archivo)
@@ -207,7 +207,7 @@ welcome_operator = PythonOperator(task_id='welcome_task',
 
 s3_to_postgres_operator = S3ToPostgresTransfer(
                            task_id = 'dag_s3_to_postgres',
-                            schema =  'bootcampdb', #'public'
+                            schema =  'dbname', #'public'
                             table= 'user_purchase',
                            s3_bucket = 's3-data-bootcampfz',
                            s3_key =  'user_purchase.csv',
