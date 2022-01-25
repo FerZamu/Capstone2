@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS bootcampdb.user_purchases (
     stock_code VARCHAR(20),
     detail VARCHAR(1000),
     quantity BIGINT,
-    invoice_date timestamp,
+    invoice_date TIMESTAMP,
     unit_price NUMERIC(8,3),
     customer_id VARCHAR(20),
     country VARCHAR(20)
