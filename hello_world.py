@@ -2,6 +2,7 @@ from datetime import datetime
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator
+from custom_modules.operator_s3_to_postgres import S3ToPostgresTransfer
 
 def print_hello():
     welcome = 'Hello world from first Airflow DAG!'
