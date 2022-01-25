@@ -7,7 +7,6 @@ from airflow import DAG
 #from custom_modules.operator_s3_to_postgres import S3ToPostgresTransfer
 from airflow.operators.python_operator import PythonOperator
 
-
 def print_welcome():
     return 'Welcome from custom operator - Airflow DAG!'
 
