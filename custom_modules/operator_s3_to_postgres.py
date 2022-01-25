@@ -94,7 +94,8 @@ class S3ToPostgresTransfer(BaseOperator):
                     'country': 'string'
                     
                  }  
-        date_cols = ['fechaRegistro']         
+        #date_cols = ['fechaRegistro']    
+        custom_date_parser = lambda x: datetime.strptime(x, "%m/%d/%Y %H:%M")
 
         # read a csv file with the properties required.
         df_products = pd.read_csv(io.StringIO(list_srt_content), 
