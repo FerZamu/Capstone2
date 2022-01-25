@@ -84,20 +84,15 @@ class S3ToPostgresTransfer(BaseOperator):
         
         # schema definition for data types of the source.
         schema = {
-                    'producto': 'string',
-                    'presentacion': 'string',
-                    'marca': 'string',
-                    'categoria': 'string',
-                    'catalogo': 'string',
-                    'precio': 'float64',                                
-                    'cadenaComercial': 'string',
-                    'giro': 'string',
-                    'nombreComercial': 'string',
-                    'direccion': 'string',
-                    'estado': 'string',
-                    'municipio': 'string',
-                    'latitud': 'float64',                  
-                    'longitud': 'float64'
+                    'invoice_number': 'string',
+                    'stock_code': 'string',
+                    'detail': 'string',
+                    'quantity': 'integer',
+                    'invoice_date': 'timestamp',
+                    'unit_price': 'float',                                
+                    'customer_id': 'integer',
+                    'country': 'string'
+                    
                  }  
         date_cols = ['fechaRegistro']         
 
@@ -107,7 +102,8 @@ class S3ToPostgresTransfer(BaseOperator):
                          delimiter=",",
                          quotechar='"',
                          low_memory=False,
-                         #parse_dates=date_cols,                                             
+                         parse_dates=["invoice_date"],
+                         date_parser=custom_date_parser,                                           
                          dtype=schema                         
                          )
         self.log.info(df_products)
@@ -142,21 +138,14 @@ class S3ToPostgresTransfer(BaseOperator):
         self.pg_hook.run(SQL_COMMAND_CREATE_TBL)  
         
         # set the columns to insert, in this case we ignore the id, because is autogenerate.
-        list_target_fields = ['producto', 
-                              'presentacion',
-                              'marca', 
-                              'categoria', 
-                              'catalogo', 
-                              'precio', 
-                              'fecharegistro', 
-                              'cadenacomercial', 
-                              'giro',
-                              'nombrecomercial', 
-                              'direccion', 
-                              'estado', 
-                              'municipio', 
-                              'latitud', 
-                              'longitud']
+        list_target_fields = ['invoice_number', 
+                              'stock_code',
+                              'detail', 
+                              'quantity', 
+                              'invoice_date', 
+                              'unit_price', 
+                              'customer_id', 
+                              'country']
         
         self.current_table = self.schema + '.' + self.table
         self.pg_hook.insert_rows(self.current_table,  
@@ -175,29 +164,15 @@ class S3ToPostgresTransfer(BaseOperator):
         self.log.info(self.sources)
 
         for source in self.sources:           
-            self.log.info("producto: {0} - \
-                           presentacion: {1} - \
-                           marca: {2} - \
-                           categoria: {3} - \
-                           catalogo: {4} - \
-                           precio: {5} - \
-                           fechaRegistro: {6} - \
-                           cadenaComercial: {7} - \
-                           giro: {8} - \
-                           nombreComercial: {9} - \
-                           direccion: {10} - \
-                           estado: {11} - \
-                           municipio: {12} - \
-                           latitud: {13} - \
-                           longitud: {14} ".format(source[0],source[1],source[2],source[3],source[4],source[5], 
+            self.log.info("invoice_number: {0} - \
+                           stock_code: {1} - \
+                           detail: {2} - \
+                           quantity: {3} - \
+                           invoice_date: {4} - \
+                           unit_price: {5} - \
+                           customer_id: {6} - \
+                           country: {7} ".format(source[0],source[1],source[2],source[3],source[4],source[5], 
                                                    source[6],
-                                                   source[7],
-                                                   source[8],
-                                                   source[9],
-                                                   source[10],
-                                                   source[11],
-                                                   source[12],
-                                                   source[13],
-                                                   source[14]))                                                  
+                                                   source[7]))                                                  
 
 
