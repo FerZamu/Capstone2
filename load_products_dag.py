@@ -135,23 +135,61 @@ class S3ToPostgresTransfer(BaseOperator):
          #   manipulador_de_archivo.close()
 
             #Display the content 
-        
-        if self.wildcard_match:
-            if not self.s3.check_for_wildcard_key(nombre_de_archivo, self.s3_bucket):
-                raise AirflowException("No key matches {0}".format(nombre_de_archivo))
-            s3_key_object = self.s3.get_wildcard_key(nombre_de_archivo, self.s3_bucket)
-        else:
-            if not self.s3.check_for_key(nombre_de_archivo, self.s3_bucket):
-                raise AirflowException(
-                    "The key {0} does not exists".format(nombre_de_archivo))
-                  
-            s3_sql_key = self.s3.get_key(nombre_de_archivo, self.s3_bucket)
-            self.log.info(s3_sql_key)
-        SQL_COMMAND_CREATE_TBL = s3_sql_key.get()["Body"].read().decode(encoding = "utf-8", errors = "ignore")    
-        self.log.info(io.StringIO(SQL_COMMAND_CREATE_TBL))  
-        
+        SQL_COMMAND_CREATE_TBL = """
+       CREATE SCHEMA IF NOT EXISTS dbname;
 
-        ############# 
+       CREATE TABLE IF NOT EXISTS dbname.user_purchases (
+                invoice_number VARCHAR(10),
+                stock_code VARCHAR(20),
+                detail VARCHAR(1000),
+                quantity BIGINT,
+                invoice_date timestamp,
+                unit_price NUMERIC(8,3),
+                customer_id VARCHAR(20),
+                country VARCHAR(20)); """
+           
+        
+ # execute command to create table in postgres.  
+        self.pg_hook.run(SQL_COMMAND_CREATE_TBL)  
+        
+        # set the columns to insert, in this case we ignore the id, because is autogenerate.
+        list_target_fields = ['invoice_number', 
+                              'stock_code',
+                              'detail', 
+                              'quantity', 
+                              'invoice_date', 
+                              'unit_price', 
+                              'customer_id', 
+                              'country']
+        
+        self.current_table = self.schema + '.' + self.table
+        self.pg_hook.insert_rows(self.current_table,  
+                                 list_df_products, 
+                                 target_fields = list_target_fields, 
+                                 commit_every = 1000,
+                                 replace = False)
+
+        # Query and print the values of the table products in the console.
+        self.request = 'SELECT * FROM ' + self.current_table
+        self.log.info(self.request)
+        self.connection = self.pg_hook.get_conn()
+        self.cursor = self.connection.cursor()
+        self.cursor.execute(self.request)
+        self.sources = self.cursor.fetchall()
+        self.log.info(self.sources)
+
+        for source in self.sources:           
+            self.log.info("invoice_number: {0} - \
+                           stock_code: {1} - \
+                           detail: {2} - \
+                           quantity: {3} - \
+                           invoice_date: {4} - \
+                           unit_price: {5} - \
+                           customer_id: {6} - \
+                           country: {7} ".format(source[0],source[1],source[2],source[3],source[4],source[5], 
+                                                   source[6],
+                                                   source[7]))     
+       
             
            
 
