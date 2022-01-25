@@ -148,7 +148,7 @@ class S3ToPostgresTransfer(BaseOperator):
             s3_sql_key = self.s3.get_key(nombre_de_archivo, self.s3_bucket)
             self.log.info(s3_sql_key)
         SQL_COMMAND_CREATE_TBL = s3_sql_key.get()["Body"].read().decode(encoding = "utf-8", errors = "ignore")    
-        self.log.info(SQL_COMMAND_CREATE_TBL)  
+        self.log.info(io.StringIO(SQL_COMMAND_CREATE_TBL))  
         
 
         ############# 
