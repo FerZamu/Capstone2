@@ -1,3 +1,4 @@
+import airflow
 from datetime import datetime
 
 # The DAG object; we'll need this to instantiate a DAG
