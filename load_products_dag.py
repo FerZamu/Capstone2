@@ -170,26 +170,6 @@ class S3ToPostgresTransfer(BaseOperator):
                                  replace = False)
 
         # Query and print the values of the table products in the console.
-        self.request = 'SELECT * FROM ' + self.current_table
-        self.log.info(self.request)
-        self.connection = self.pg_hook.get_conn()
-        self.cursor = self.connection.cursor()
-        self.cursor.execute(self.request)
-        self.sources = self.cursor.fetchall()
-        self.log.info(self.sources)
-
-        for source in self.sources:           
-            self.log.info("invoice_number: {0} - \
-                           stock_code: {1} - \
-                           detail: {2} - \
-                           quantity: {3} - \
-                           invoice_date: {4} - \
-                           unit_price: {5} - \
-                           customer_id: {6} - \
-                           country: {7} ".format(source[0],source[1],source[2],source[3],source[4],source[5], 
-                                                   source[6],
-                                                   source[7]))     
-       
             
            
 
