@@ -20,28 +20,6 @@ import io
 def print_welcome():
     return 'Welcome from custom operator - Airflow DAG!'
 
-dag = DAG('dag_insert_data', 
-          description='Inser Data from CSV To Postgres',
-          schedule_interval='@once',        
-          start_date=datetime(2021, 10, 1),
-          catchup=False)
-
-welcome_operator = PythonOperator(task_id='welcome_task', 
-                                  python_callable=print_welcome, 
-                                  dag=dag)
-
-s3_to_postgres_operator = S3ToPostgresTransfer(
-                           task_id = 'dag_s3_to_postgres',
-                            schema =  'bootcampdb', #'public'
-                            table= 'user_purchase',
-                           s3_bucket = 's3-data-bootcampfz',
-                           s3_key =  'user_purchase.csv',
-                           aws_conn_postgres_id = 'postgres_default',
-                            aws_conn_id = 'aws_default',   
-                           dag = dag
-)
-
-
 class S3ToPostgresTransfer(BaseOperator):
    
     template_fields = ()
@@ -213,9 +191,30 @@ class S3ToPostgresTransfer(BaseOperator):
                            customer_id: {6} - \
                            country: {7} ".format(source[0],source[1],source[2],source[3],source[4],source[5], 
                                                    source[6],
-                                                   source[7]))                                                  
+                                                   source[7]))      
+            
+           
 
+dag = DAG('dag_insert_data', 
+          description='Inser Data from CSV To Postgres',
+          schedule_interval='@once',        
+          start_date=datetime(2021, 10, 1),
+          catchup=False)
 
+welcome_operator = PythonOperator(task_id='welcome_task', 
+                                  python_callable=print_welcome, 
+                                  dag=dag)
 
+s3_to_postgres_operator = S3ToPostgresTransfer(
+                           task_id = 'dag_s3_to_postgres',
+                            schema =  'bootcampdb', #'public'
+                            table= 'user_purchase',
+                           s3_bucket = 's3-data-bootcampfz',
+                           s3_key =  'user_purchase.csv',
+                           aws_conn_postgres_id = 'postgres_default',
+                            aws_conn_id = 'aws_default',   
+                           dag = dag
+)
+s3_to_postgres_operator
 
 #welcome_operator.set_downstream(s3_to_postgres_operator)
