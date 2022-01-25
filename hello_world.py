@@ -15,4 +15,15 @@ dag = DAG('hello_world',
 
 hello_operator = PythonOperator(task_id='hello_task', python_callable=print_hello, dag=dag)
 
-hello_operator
+s3_to_postgres_operator = S3ToPostgresTransfer(
+                           task_id = 'dag_s3_to_postgres',
+                            schema =  'dbname', #'public'
+                            table= 'user_purchase',
+                           s3_bucket = 's3-data-bootcampfz',
+                           s3_key =  'user_purchase.csv',
+                           aws_conn_postgres_id = 'postgres_default',
+                            aws_conn_id = 'aws_default',   
+                           dag = dag
+)
+
+s3_to_postgres_operator
