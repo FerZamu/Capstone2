@@ -1,6 +1,3 @@
-import airflow
-import os
-import psycopg2
 from datetime import datetime
 
 # The DAG object; we'll need this to instantiate a DAG
