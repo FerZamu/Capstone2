@@ -49,6 +49,7 @@ def csv_to_postgres():
         curr.copy_from(f, 'user_purchase', sep=",")
         get_postgres_conn.commit()
 
+        
 #Task 
 task1 = PostgresOperator(task_id = 'create_table',
                         sql="""
