@@ -44,7 +44,7 @@ def csv_to_postgres():
     get_postgres_conn = PostgresHook(postgres_conn_id='postgres_default').get_conn()
     curr = get_postgres_conn.cursor()
     # CSV loading to table
-    with open(file_path("/Downloads/user_purchase.csv"), "r") as f:
+    with open(file_path("/custom_modules/assets/user_purchase.csv"), "r") as f:
         next(f)
         curr.copy_from(f, 'user_purchase', sep=",")
         get_postgres_conn.commit()
@@ -57,8 +57,8 @@ task1 = PostgresOperator(task_id = 'create_table',
                           stock_code VARCHAR(20),
                           detail VARCHAR(1000),
                           quantity INTEGER,
-                          invoice_date timestamp,
-                          unit_price INTEGER,
+                          invoice_date TIMESTAMP,
+                          unit_price FLOAT,
                           customer_id VARCHAR(20),
                           country VARCHAR(20));
                             """,
