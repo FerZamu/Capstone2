@@ -170,7 +170,7 @@ class S3ToPostgresTransfer(BaseOperator):
                                  replace = False)
 
         # Query and print the values of the table products in the console.
-            self.request = 'SELECT * FROM ' + self.current_table
+        self.request = 'SELECT * FROM ' + self.current_table
         self.log.info(self.request)
         self.connection = self.pg_hook.get_conn()
         self.cursor = self.connection.cursor()
