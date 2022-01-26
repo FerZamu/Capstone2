@@ -203,7 +203,7 @@ welcome_operator = PythonOperator(task_id='welcome_task',
 
 s3_to_postgres_operator = S3ToPostgresTransfer(
                            task_id = 'dag_s3_to_postgres',
-                            schema =  'dbname', #'public'
+                            schema =  'bootcampdb', #'public'
                             table= 'user_purchase',
                            s3_bucket = 's3-data-bootcampfz',
                            s3_key =  'user_purchase.csv',
