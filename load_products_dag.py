@@ -7,9 +7,16 @@ from airflow.hooks.S3_hook import S3Hook
 from airflow.models import BaseOperator 
 from airflow.utils.decorators import apply_defaults
 from airflow.exceptions import AirflowException
+from airflow.operators.dummy_operator import DummyOperator
 import os.path
 import pandas as pd
 import io
+
+
+
+## Dummies ##
+init = DummyOperator(task_id='init')
+end = DummyOperator(task_id='end')
 
 class S3ToPostgresTransfer(BaseOperator):
    
@@ -74,68 +81,98 @@ class S3ToPostgresTransfer(BaseOperator):
                     "The key {0} does not exists".format(self.s3_key,self.s3_key1))
                   
             s3_key_object = self.s3.get_key(self.s3_key, self.s3_bucket)
-            s3_key_object = self.s3.get_key(self.s3_key1, self.s3_bucket)
+            s3_key_object1 = self.s3.get_key(self.s3_key1, self.s3_bucket)
 
         # Read and decode the file into a list of strings.  
         list_srt_content = s3_key_object.get()['Body'].read().decode(encoding = "utf-8", errors = "ignore")
+        list_srt_content = s3_key_object1.get()['Body'].read().decode(encoding = "utf-8", errors = "ignore")
         
         # schema definition for data types of the source.
         schema = {
                     'log_id': 'float',
-                    'log': 'string'
-                    
+                    'log': 'string'  
                  }  
-        #date_cols = ['fechaRegistro']    
-        custom_date_parser = lambda x: datetime.strptime(x, "%m/%d/%Y %H:%M")
-
-        # read a csv file with the properties required.
-        df_products = pd.read_csv(io.StringIO(list_srt_content), 
+        schema1 = {
+                    'cid': 'float',
+                    'review_str': 'string',
+                    'id_review': 'float'  
+                 }  
+        
+        # read a csv logs file with the properties required.
+        df_logs = pd.read_csv(io.StringIO(list_srt_content), 
                          header=0, 
                          delimiter=",",
                          quotechar='"',
-                         low_memory=False,
-                        # parse_dates=["InvoiceDate"],
-                         date_parser=custom_date_parser,                                           
+                         low_memory=False,                                         
                          dtype=schema                         
                          )
-        self.log.info(df_products)
-        self.log.info(df_products.info())
+        self.log.info(df_logs)
+        self.log.info(df_logs.info())
+
+        # read a csv movies file with the properties required.
+        df_movie = pd.read_csv(io.StringIO(list_srt_content), 
+                         header=0, 
+                         delimiter=",",
+                         quotechar='"',
+                         low_memory=False,                                         
+                         dtype=schema1                         
+                         )
+        self.log.info(df_movie)
+        self.log.info(df_movie.info())
 
         # formatting and converting the dataframe object in list to prepare the income of the next steps.
-        df_products = df_products.replace(r"[\"]", r"'")
-        list_df_products = df_products.values.tolist()
-        list_df_products = [tuple(x) for x in list_df_products]
-        self.log.info(list_df_products)   
+        df_movie = df_movie.replace(r"[\"]", r"'")
+        list_df_movie = df_movie.values.tolist()
+        list_df_movie = [tuple(x) for x in list_df_movie]
+        self.log.info(df_movie.info())   
        
-        # Read the file with the DDL SQL to create the table products in postgres DB.
-        nombre_de_archivo = "bootcampdb.log_reviews.sql"
-        
+        # formatting and converting the dataframe object in list to prepare the income of the next steps.
+        df_logs = df_logs.replace(r"[\"]", r"'")
+        list_df_logs = df_logs.values.tolist()
+        list_df_logs = [tuple(x) for x in list_df_logs]
+        self.log.info(list_df_logs)   
 
+        # Read the file with the DDL SQL to create the table products in postgres DB.
+        #file_name_log = "bootcampdb.log_reviews.sql"
+        #file_name_movie = "bootcampdb.movie_reviews.sql"
+        
             #Display the content 
         SQL_COMMAND_CREATE_TBL = """
        CREATE SCHEMA IF NOT EXISTS bootcampdb;
        CREATE TABLE IF NOT EXISTS bootcampdb.log_review (
-                id_review NUMERIC(10),
-                log VARCHAR(1000); """
+                id_review NUMERIC(100),
+                log VARCHAR(1000);       
+        CREATE TABLE IF NOT EXISTS bootcampdb.movie_review (
+                cid NUMERIC(100),
+                review_str VARCHAR(100),
+                id_review NUMERIC(100); """
            
         
  # execute command to create table in postgres.  
         self.pg_hook.run(SQL_COMMAND_CREATE_TBL)  
         
         # set the columns to insert, in this case we ignore the id, because is autogenerate.
-        list_target_fields = ['id_review', 
-                              'log']
+        list_target_fields = ['log']
         
         self.current_table = self.schema + '.' + self.table
         self.pg_hook.insert_rows(self.current_table,  
-                                 list_df_products, 
+                                 list_df_logs, 
+                                 target_fields = list_target_fields, 
+                                 commit_every = 1000,
+                                 replace = False)
+
+        list_target_fields = ['review_str','id_review']
+        
+        self.current_table = self.schema + '.' + self.table
+        self.pg_hook.insert_rows(self.current_table,  
+                                 list_df_logs, 
                                  target_fields = list_target_fields, 
                                  commit_every = 1000,
                                  replace = False)
  
 ## DAG NAME ##          
-dag = DAG('dag_insert_data', 
-          description='Inser Data from CSV To Postgres',
+dag = DAG('Movie_reviews', 
+          description='Start ETL process with movies',
           schedule_interval='@once',        
           start_date=datetime(2021, 10, 1),
           catchup=False)
@@ -161,4 +198,4 @@ load_movie_review = S3ToPostgresTransfer(
                             aws_conn_id = 'aws_default',   
                            dag = dag
 )
-[load_log_reviews,load_movie_review]
+init >> [load_log_reviews,load_movie_review] >> end
