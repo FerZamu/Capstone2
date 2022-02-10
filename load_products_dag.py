@@ -97,7 +97,7 @@ class S3ToPostgresTransfer(BaseOperator):
                          delimiter=",",
                          quotechar='"',
                          low_memory=False,
-                         parse_dates=["InvoiceDate"],
+                        # parse_dates=["InvoiceDate"],
                          date_parser=custom_date_parser,                                           
                          dtype=schema                         
                          )
@@ -137,7 +137,6 @@ class S3ToPostgresTransfer(BaseOperator):
                                  commit_every = 1000,
                                  replace = False)
  
-       
 ## DAG NAME ##          
 dag = DAG('dag_insert_data', 
           description='Inser Data from CSV To Postgres',
