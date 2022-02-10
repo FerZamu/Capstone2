@@ -199,6 +199,6 @@ load_movie_review = S3ToPostgresTransfer(
                            s3_key1 = 'movie_review.csv',
                            aws_conn_postgres_id = 'postgres_default',
                             aws_conn_id = 'aws_default',   
-                           dag = dag
+                          # dag = dag
 )
 init >> [load_log_reviews,load_movie_review] >> end
