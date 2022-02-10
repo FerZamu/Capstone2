@@ -12,6 +12,11 @@ import os.path
 import pandas as pd
 import io
 
+
+# dummies
+    init = DummyOperator(task_id='init', on_success_callback=get_init_success_datetime)
+    end = DummyOperator(task_id='end', on_success_callback=send_success_notification)
+
 class S3ToPostgresTransfer(BaseOperator):
    
     template_fields = ()
@@ -139,10 +144,7 @@ dag = DAG('dag_insert_data',
           schedule_interval='@once',        
           start_date=datetime(2021, 10, 1),
           catchup=False)
-## Just to add an indicator that it runs ##
-welcome_operator = PythonOperator(task_id='welcome_task', 
-                                  python_callable=print_welcome, 
-                                  dag=dag)
+
 ## Load the data to Postgres#
 s3_to_postgres_operator = S3ToPostgresTransfer(
                            task_id = 'dag_s3_to_postgres',
@@ -154,6 +156,7 @@ s3_to_postgres_operator = S3ToPostgresTransfer(
                             aws_conn_id = 'aws_default',   
                            dag = dag
 )
-s3_to_postgres_operator
 
-#welcome_operator.set_downstream(s3_to_postgres_operator)
+init >> s3_to_postgres_operator >> create_emr_and_connection >> end
+
+
