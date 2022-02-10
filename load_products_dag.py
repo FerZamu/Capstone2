@@ -13,11 +13,6 @@ import pandas as pd
 import io
 
 
-
-## Dummies ##
-init = DummyOperator(task_id='init')
-end = DummyOperator(task_id='end')
-
 class S3ToPostgresTransfer(BaseOperator):
    
     template_fields = ()
@@ -46,7 +41,8 @@ class S3ToPostgresTransfer(BaseOperator):
         self.schema = schema
         self.table = table
         self.s3_bucket = s3_bucket
-        self.s3_keys = [s3_key,s3_key1]
+        self.s3_keys = s3_key
+        self.s3_key1 = s3_key1
         self.aws_conn_postgres_id  = aws_conn_postgres_id 
         self.aws_conn_id = aws_conn_id
         self.verify = verify
@@ -179,6 +175,10 @@ dag = DAG('Movie_reviews',
           start_date=datetime(2021, 10, 1),
           catchup=False)
 
+## Dummies ##
+init = DummyOperator(task_id='init')
+end = DummyOperator(task_id='end')
+
 ## Load the data to Postgres#
 load_log_reviews = S3ToPostgresTransfer(
                            task_id = 'dag_s3_to_postgres',
@@ -195,7 +195,7 @@ load_movie_review = S3ToPostgresTransfer(
                            schema =  'bootcampdb', #'public'
                            table= 'movie_review',
                            s3_bucket = 's3-data-bootcampfz',
-                           s3_key = 'movie_review.csv',
+                           s3_key1 = 'movie_review.csv',
                            aws_conn_postgres_id = 'postgres_default',
                            aws_conn_id = 'aws_default',   
                            dag = dag
