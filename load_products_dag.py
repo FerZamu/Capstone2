@@ -157,6 +157,6 @@ s3_to_postgres_operator = S3ToPostgresTransfer(
                            dag = dag
 )
 
-init >> s3_to_postgres_operator >> create_emr_and_connection >> end
+init >> s3_to_postgres_operator >> end
 
 
