@@ -187,8 +187,8 @@ load_log_reviews = S3ToPostgresTransfer(
                            s3_bucket = 's3-data-bootcampfz',
                            s3_key = 'log_reviews.csv',
                            aws_conn_postgres_id = 'postgres_default',
-                           aws_conn_id = 'aws_default',   
-                           dag = dag
+                           aws_conn_id = 'aws_default'  
+                          
 )
 load_movie_review = S3ToPostgresTransfer(
                            task_id = 'dag_s3_to_postgres',
@@ -197,7 +197,7 @@ load_movie_review = S3ToPostgresTransfer(
                            s3_bucket = 's3-data-bootcampfz',
                            s3_key1 = 'movie_review.csv',
                            aws_conn_postgres_id = 'postgres_default',
-                           aws_conn_id = 'aws_default',   
-                           dag = dag
+                           aws_conn_id = 'aws_default'  
+                          
 )
 init >> [load_log_reviews,load_movie_review] >> end
