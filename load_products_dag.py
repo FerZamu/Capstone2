@@ -8,8 +8,8 @@ from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
 from airflow.exceptions import AirflowException
 from airflow.operators.dummy_operator import DummyOperator
-import os.path
 import pandas as pd
+import os.path
 import io
 
 
@@ -41,7 +41,7 @@ class S3ToPostgresTransfer(BaseOperator):
         self.schema = schema
         self.table = table
         self.s3_bucket = s3_bucket
-        self.s3_keys = s3_key
+        self.s3_key = s3_key
         self.s3_key1 = s3_key1
         self.aws_conn_postgres_id  = aws_conn_postgres_id 
         self.aws_conn_id = aws_conn_id
@@ -177,8 +177,8 @@ with DAG('Movie_reviews',
 ) as dag:
 
 ## Dummies ##
-init = DummyOperator(task_id='init')
-end = DummyOperator(task_id='end')
+    init = DummyOperator(task_id='init')
+    end = DummyOperator(task_id='end')
 
 ## Load the data to Postgres#
 load_log_reviews = S3ToPostgresTransfer(
