@@ -1,4 +1,3 @@
-
 # The DAG object; we'll need this to instantiate a DAG
 from datetime import datetime
 from airflow import DAG
@@ -15,8 +14,8 @@ import io
 
 
 # dummies
-    init = DummyOperator(task_id='init', on_success_callback=get_init_success_datetime)
-    end = DummyOperator(task_id='end', on_success_callback=send_success_notification)
+init = DummyOperator(task_id='init', on_success_callback=get_init_success_datetime)
+end = DummyOperator(task_id='end', on_success_callback=send_success_notification)
 
 class S3ToPostgresTransfer(BaseOperator):
    
@@ -118,7 +117,6 @@ class S3ToPostgresTransfer(BaseOperator):
             #Display the content 
         SQL_COMMAND_CREATE_TBL = """
        CREATE SCHEMA IF NOT EXISTS bootcampdb;
-
        CREATE TABLE IF NOT EXISTS bootcampdb.log_review (
                 id_review NUMERIC(10),
                 log VARCHAR(1000); """
@@ -157,6 +155,4 @@ s3_to_postgres_operator = S3ToPostgresTransfer(
                            dag = dag
 )
 
-    init >> s3_to_postgres_operator >> end
-
-
+init >> s3_to_postgres_operator >> end
