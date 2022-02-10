@@ -3,6 +3,7 @@
 from datetime import datetime
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
+from airflow.operators.dummy_operator import DummyOperator
 from airflow.hooks.postgres_hook import PostgresHook
 from airflow.hooks.S3_hook import S3Hook
 from airflow.models import BaseOperator 
@@ -14,8 +15,8 @@ import io
 
 
 # dummies
-   # init = DummyOperator(task_id='init', on_success_callback=get_init_success_datetime)
-   # end = DummyOperator(task_id='end', on_success_callback=send_success_notification)
+    init = DummyOperator(task_id='init', on_success_callback=get_init_success_datetime)
+    end = DummyOperator(task_id='end', on_success_callback=send_success_notification)
 
 class S3ToPostgresTransfer(BaseOperator):
    
@@ -155,7 +156,7 @@ s3_to_postgres_operator = S3ToPostgresTransfer(
                             aws_conn_id = 'aws_default',   
                            dag = dag
 )
-s3_to_postgres_operator
-   # init >> s3_to_postgres_operator >> end
+
+    init >> s3_to_postgres_operator >> end
 
 
