@@ -1,24 +1,16 @@
-from datetime import datetime
 
 # The DAG object; we'll need this to instantiate a DAG
+from datetime import datetime
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
 from airflow.hooks.postgres_hook import PostgresHook
 from airflow.hooks.S3_hook import S3Hook
-#from airflow.providers.postgres.hooks.postgres.PostgresHook import PostgresHook
-#from airflow.providers.amazon.aws.hooks.s3.S3Hook import S3Hook  
 from airflow.models import BaseOperator 
 from airflow.utils.decorators import apply_defaults
 from airflow.exceptions import AirflowException
 import os.path
 import pandas as pd
 import io
-
-# Operators; we need this to operate!
-#from custom_modules.operator_s3_to_postgres import S3ToPostgresTransfer
-
-def print_welcome():
-    return 'Welcome from custom operator - Airflow DAG!'
 
 class S3ToPostgresTransfer(BaseOperator):
    
@@ -87,13 +79,8 @@ class S3ToPostgresTransfer(BaseOperator):
         
         # schema definition for data types of the source.
         schema = {
-                    'invoice_number': 'string',
-                    'stock_code': 'string',
-                    'detail': 'string',
-                    'quantity': 'float',
-                    'unit_price': 'float',                                
-                    'customer_id': 'float',
-                    'country': 'string'
+                    'log_id': 'float',
+                    'log': 'string'
                     
                  }  
         #date_cols = ['fechaRegistro']    
@@ -119,48 +106,24 @@ class S3ToPostgresTransfer(BaseOperator):
         self.log.info(list_df_products)   
        
         # Read the file with the DDL SQL to create the table products in postgres DB.
-        nombre_de_archivo = "bootcampdb.user_purchase.sql"
+        nombre_de_archivo = "bootcampdb.log_reviews.sql"
         
-        #ruta_archivo = os.path.sep + nombre_de_archivo
-        #self.log.info(ruta_archivo)
-        #proposito_del_archivo = "r" #r es de Lectura
-        #codificación = "UTF-8" #Tabla de Caracteres,
-                               #ISO-8859-1 codificación preferidad por
-                               #Microsoft, en Linux es UTF-8
-        
-        #with open(ruta_archivo, proposito_del_archivo, encoding=codificación) as manipulador_de_archivo:
-       
-            #Read dile with the DDL CREATE TABLE
-         #   SQL_COMMAND_CREATE_TBL = manipulador_de_archivo.read()
-         #   manipulador_de_archivo.close()
 
             #Display the content 
         SQL_COMMAND_CREATE_TBL = """
        CREATE SCHEMA IF NOT EXISTS bootcampdb;
 
-       CREATE TABLE IF NOT EXISTS bootcampdb.user_purchase (
-                invoice_number VARCHAR(10),
-                stock_code VARCHAR(20),
-                detail VARCHAR(1000),
-                quantity BIGINT,
-                invoice_date timestamp,
-                unit_price NUMERIC(8,3),
-                customer_id VARCHAR(20),
-                country VARCHAR(20)); """
+       CREATE TABLE IF NOT EXISTS bootcampdb.log_review (
+                id_review NUMERIC(10),
+                log VARCHAR(1000); """
            
         
  # execute command to create table in postgres.  
         self.pg_hook.run(SQL_COMMAND_CREATE_TBL)  
         
         # set the columns to insert, in this case we ignore the id, because is autogenerate.
-        list_target_fields = ['invoice_number', 
-                              'stock_code',
-                              'detail', 
-                              'quantity', 
-                              'invoice_date', 
-                              'unit_price', 
-                              'customer_id', 
-                              'country']
+        list_target_fields = ['id_review', 
+                              'log']
         
         self.current_table = self.schema + '.' + self.table
         self.pg_hook.insert_rows(self.current_table,  
@@ -168,39 +131,19 @@ class S3ToPostgresTransfer(BaseOperator):
                                  target_fields = list_target_fields, 
                                  commit_every = 1000,
                                  replace = False)
-
-        # Query and print the values of the table products in the console.
-        self.request = 'SELECT * FROM ' + self.current_table
-        self.log.info(self.request)
-        self.connection = self.pg_hook.get_conn()
-        self.cursor = self.connection.cursor()
-        self.cursor.execute(self.request)
-        self.sources = self.cursor.fetchall()
-        self.log.info(self.sources)
-
-        for source in self.sources:           
-            self.log.info("invoice_number: {0} - \
-                           stock_code: {1} - \
-                           detail: {2} - \
-                           quantity: {3} - \
-                           invoice_date: {4} - \
-                           unit_price: {5} - \
-                           customer_id: {6} - \
-                           country: {7} ".format(source[0],source[1],source[2],source[3],source[4],source[5], 
-                                                   source[6],
-                                                   source[7]))     
+ 
        
-           
+## DAG NAME ##          
 dag = DAG('dag_insert_data', 
           description='Inser Data from CSV To Postgres',
           schedule_interval='@once',        
           start_date=datetime(2021, 10, 1),
           catchup=False)
-
+## Just to add an indicator that it runs ##
 welcome_operator = PythonOperator(task_id='welcome_task', 
                                   python_callable=print_welcome, 
                                   dag=dag)
-
+## Load the data to Postgres#
 s3_to_postgres_operator = S3ToPostgresTransfer(
                            task_id = 'dag_s3_to_postgres',
                             schema =  'bootcampdb', #'public'
