@@ -33,6 +33,7 @@ class S3ToPostgresTransfer(BaseOperator):
             table,
             s3_bucket,
             s3_key,
+            s3_key1,
             aws_conn_postgres_id ='postgres_default',
             aws_conn_id='aws_default',
             verify=None,
@@ -46,6 +47,7 @@ class S3ToPostgresTransfer(BaseOperator):
         self.table = table
         self.s3_bucket = s3_bucket
         self.s3_key = s3_key
+        self.s3_key1 = s3_key1
         self.aws_conn_postgres_id  = aws_conn_postgres_id 
         self.aws_conn_id = aws_conn_id
         self.verify = verify
@@ -67,6 +69,7 @@ class S3ToPostgresTransfer(BaseOperator):
 
         self.log.info("Downloading S3 file")
         self.log.info(self.s3_key + ', ' + self.s3_bucket)
+        self.log.info(self.s3_key1 + ', ' + self.s3_bucket)
 
         # Validate if the file source exist or not in the bucket.
          
