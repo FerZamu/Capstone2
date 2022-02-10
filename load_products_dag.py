@@ -169,11 +169,12 @@ class S3ToPostgresTransfer(BaseOperator):
                                  replace = False)
  
 ## DAG NAME ##          
-dag = DAG('Movie_reviews', 
+with DAG('Movie_reviews', 
           description='Start ETL process with movies',
           schedule_interval='@once',        
           start_date=datetime(2021, 10, 1),
-          catchup=False)
+          catchup=False
+) as dag:
 
 ## Dummies ##
 init = DummyOperator(task_id='init')
