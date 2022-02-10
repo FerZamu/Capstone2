@@ -2,7 +2,7 @@
 from datetime import datetime
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
-from airflow.operators.dummy_operator import DummyOperator
+#from airflow.operators.dummy_operator import DummyOperator
 from airflow.hooks.postgres_hook import PostgresHook
 from airflow.hooks.S3_hook import S3Hook
 from airflow.models import BaseOperator 
@@ -14,8 +14,8 @@ import io
 
 
 # dummies
-init = DummyOperator(task_id='init', on_success_callback=get_init_success_datetime)
-end = DummyOperator(task_id='end', on_success_callback=send_success_notification)
+#init = DummyOperator(task_id='init', on_success_callback=get_init_success_datetime)
+#end = DummyOperator(task_id='end', on_success_callback=send_success_notification)
 
 ## DAG NAME ##          
 dag = DAG('dag_insert_data', 
@@ -24,4 +24,4 @@ dag = DAG('dag_insert_data',
           start_date=datetime(2021, 10, 1),
           catchup=False)
 
-init >> end
+#init >> end
