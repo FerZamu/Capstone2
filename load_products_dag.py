@@ -14,8 +14,8 @@ import io
 
 
 # dummies
-    init = DummyOperator(task_id='init', on_success_callback=get_init_success_datetime)
-    end = DummyOperator(task_id='end', on_success_callback=send_success_notification)
+   # init = DummyOperator(task_id='init', on_success_callback=get_init_success_datetime)
+   # end = DummyOperator(task_id='end', on_success_callback=send_success_notification)
 
 class S3ToPostgresTransfer(BaseOperator):
    
@@ -155,7 +155,7 @@ s3_to_postgres_operator = S3ToPostgresTransfer(
                             aws_conn_id = 'aws_default',   
                            dag = dag
 )
-
-    init >> s3_to_postgres_operator >> end
+s3_to_postgres_operator
+   # init >> s3_to_postgres_operator >> end
 
 
