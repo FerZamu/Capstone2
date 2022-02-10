@@ -46,8 +46,7 @@ class S3ToPostgresTransfer(BaseOperator):
         self.schema = schema
         self.table = table
         self.s3_bucket = s3_bucket
-        self.s3_key = s3_key
-        self.s3_key = s3_key1
+        self.s3_keys = [s3_key,s3_key1]
         self.aws_conn_postgres_id  = aws_conn_postgres_id 
         self.aws_conn_id = aws_conn_id
         self.verify = verify
