@@ -150,12 +150,12 @@ s3_to_postgres_operator = S3ToPostgresTransfer(
                             schema =  'bootcampdb', #'public'
                             table= 'user_purchase',
                            s3_bucket = 's3-data-bootcampfz',
-                           s3_key =  'user_purchase.csv',
+                           s3_key =  'log_reviews.csv',
                            aws_conn_postgres_id = 'postgres_default',
                             aws_conn_id = 'aws_default',   
                            dag = dag
 )
 
-init >> s3_to_postgres_operator >> end
+    init >> s3_to_postgres_operator >> end
 
 
