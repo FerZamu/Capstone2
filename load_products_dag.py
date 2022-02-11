@@ -181,26 +181,16 @@ with DAG('Movie_reviews',
     end = DummyOperator(task_id='end')
 
 ## Load the data to Postgres#
-load_log_reviews = S3ToPostgresTransfer(
+load_movie_files = S3ToPostgresTransfer(
                             task_id = 'dag_s3_to_postgres_review',
                             schema =  'bootcampdb', #'public'
                             table= 'log_reviews',
                             s3_bucket = 's3-data-bootcampfz',
                             s3_key = 'log_reviews.csv',
-                            s3_key1 = '',
+                            s3_key1 = 'movie_review.csv',
                             aws_conn_postgres_id = 'postgres_default',
                             aws_conn_id = 'aws_default', 
                             dag=dag
 )
-load_movie_review = S3ToPostgresTransfer(
-                            task_id = 'dag_s3_to_postgres_movie',
-                            schema =  'bootcampdb', #'public'
-                            table= 'movie_review',
-                            s3_bucket = 's3-data-bootcampfz',
-                            s3_key = '',
-                            s3_key1 = 'movie_review.csv',
-                            aws_conn_postgres_id = 'postgres_default',
-                            aws_conn_id = 'aws_default', 
-                            dag=dag                            
-)
-init >> [load_log_reviews,load_movie_review] >> end
+
+init >> load_movie_files >> end
