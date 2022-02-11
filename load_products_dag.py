@@ -104,7 +104,7 @@ class S3ToPostgresTransfer(BaseOperator):
         self.log.info(list_df_logs)  
          
          # schema definition for data types of the source.
-         schema = {
+        schema = {
                     'cid': 'float',
                     'review_str': 'string',
                     'id_review': 'float'  
