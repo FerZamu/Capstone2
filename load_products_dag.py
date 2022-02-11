@@ -63,24 +63,24 @@ class S3ToPostgresTransfer(BaseOperator):
         self.s3 = S3Hook(aws_conn_id = self.aws_conn_id, verify = self.verify)
 
         self.log.info("Downloading S3 file")
-        self.log.info(self.s3_key + ', ' + self.s3_bucket)
-        self.log.info(self.s3_key1 + ', ' + self.s3_bucket)
+        self.log.info(self.s3_key + ',' + self.s3_bucket)
+        self.log.info(self.s3_key1 + ',' + self.s3_bucket)
 
         # Validate if the file source exist or not in the bucket.
          
         if self.wildcard_match:
-            if not self.s3.check_for_wildcard_key(self.s3_key, self.s3_bucket) and not self.s3.check_for_wildcard_key(self.s3_key1, self.s3_bucket): 
+            if not self.s3.check_for_wildcard_key(self.s3_key,self.s3_bucket) and not self.s3.check_for_wildcard_key(self.s3_key1,self.s3_bucket): 
                 raise AirflowException("No key matches {0}")#.format(self.s3_key,self.s3_key1)) ,self.s3_key1
             s3_key_object = self.s3.get_wildcard_key(self.s3_key, self.s3_bucket)
             s3_key_object1 = self.s3.get_wildcard_key(self.s3_key1, self.s3_bucket)
         else:
             print(self.s3.list_keys(self.s3_bucket))
-            if not self.s3.check_for_key(self.s3_key, self.s3_bucket) and not self.s3.check_for_wildcard_key(self.s3_key1, self.s3_bucket): 
+            if not self.s3.check_for_key(self.s3_key,self.s3_bucket) and not self.s3.check_for_wildcard_key(self.s3_key1,self.s3_bucket): 
                 raise AirflowException(
                     "The key {0} does not exists")#.format(self.s3_key,self.s3_key1)) ,self.s3_key1
                   
-            s3_key_object = self.s3.get_key(self.s3_key, self.s3_bucket)
-            s3_key_object1 = self.s3.get_key(self.s3_key1, self.s3_bucket)
+            s3_key_object = self.s3.get_key(self.s3_key,self.s3_bucket)
+            s3_key_object1 = self.s3.get_key(self.s3_key1,self.s3_bucket)
 
         # Read and decode the file into a list of strings.  
         list_srt_content = s3_key_object.get()['Body'].read().decode(encoding = "utf-8", errors = "ignore")
