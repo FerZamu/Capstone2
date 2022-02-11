@@ -184,9 +184,9 @@ with DAG('Movie_reviews',
 ## Load the data to Postgres#
 load_movie_files = S3ToPostgresTransfer(
                             task_id = 'dag_s3_to_postgres_review',
-                            schema =  'bootcampdb', #'public'
+                            schema =  'bootcampdb',
                             table= 'log_reviews',
-                            s3_bucket = 'raw_movie_data',
+                            s3_bucket = 'raw-movie-data',
                             s3_key = 'log_reviews.csv',
                             s3_key1 = 'movie_review.csv',
                             aws_conn_postgres_id = 'postgres_default',
