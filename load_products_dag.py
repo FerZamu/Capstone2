@@ -28,7 +28,7 @@ class S3ToPostgresTransfer(BaseOperator):
             table,
             s3_bucket,
             s3_key,
-            s3_key1,
+           # s3_key1,
             aws_conn_postgres_id ='postgres_default',
             aws_conn_id='aws_default',
             verify=None,
