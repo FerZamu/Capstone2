@@ -28,7 +28,6 @@ class S3ToPostgresTransfer(BaseOperator):
             table,
             s3_bucket,
             s3_key,
-            s3_key1,
             aws_conn_postgres_id ='postgres_default',
             aws_conn_id='aws_default',
             verify=None,
@@ -42,7 +41,6 @@ class S3ToPostgresTransfer(BaseOperator):
         self.table = table
         self.s3_bucket = s3_bucket
         self.s3_key = s3_key
-        self.s3_key1 = s3_key1
         self.aws_conn_postgres_id  = aws_conn_postgres_id 
         self.aws_conn_id = aws_conn_id
         self.verify = verify
@@ -64,37 +62,28 @@ class S3ToPostgresTransfer(BaseOperator):
 
         self.log.info("Downloading S3 file")
         self.log.info(self.s3_key + ',' + self.s3_bucket)
-        self.log.info(self.s3_key1 + ',' + self.s3_bucket)
 
         # Validate if the file source exist or not in the bucket.
          
         if self.wildcard_match:
-            if not self.s3.check_for_wildcard_key(self.s3_key,self.s3_bucket) and not self.s3.check_for_wildcard_key(self.s3_key1,self.s3_bucket): 
-                raise AirflowException("No key matches {0}")#.format(self.s3_key,self.s3_key1)) ,self.s3_key1
+            if not self.s3.check_for_wildcard_key(self.s3_key,self.s3_bucket): 
+                raise AirflowException("No key matches {0}".format(self.s3_key)) 
             s3_key_object = self.s3.get_wildcard_key(self.s3_key, self.s3_bucket)
-            s3_key_object1 = self.s3.get_wildcard_key(self.s3_key1, self.s3_bucket)
+            
         else:
-            print(self.s3.list_keys(self.s3_bucket))
-            if not self.s3.check_for_key(self.s3_key,self.s3_bucket) and not self.s3.check_for_wildcard_key(self.s3_key1,self.s3_bucket): 
+            if not self.s3.check_for_key(self.s3_key,self.s3_bucket): 
                 raise AirflowException(
-                    "The key {0} does not exists")#.format(self.s3_key,self.s3_key1)) ,self.s3_key1
+                    "The key {0} does not exists".format(self.s3_key)) 
                   
             s3_key_object = self.s3.get_key(self.s3_key,self.s3_bucket)
-            s3_key_object1 = self.s3.get_key(self.s3_key1,self.s3_bucket)
 
         # Read and decode the file into a list of strings.  
         list_srt_content = s3_key_object.get()['Body'].read().decode(encoding = "utf-8", errors = "ignore")
-        list_srt_content = s3_key_object1.get()['Body'].read().decode(encoding = "utf-8", errors = "ignore")
         
         # schema definition for data types of the source.
         schema = {
                     'log_id': 'float',
                     'log': 'string'  
-                 }  
-        schema1 = {
-                    'cid': 'float',
-                    'review_str': 'string',
-                    'id_review': 'float'  
                  }  
         
         # read a csv logs file with the properties required.
@@ -107,6 +96,19 @@ class S3ToPostgresTransfer(BaseOperator):
                          )
         self.log.info(df_logs)
         self.log.info(df_logs.info())
+         
+         # formatting and converting the dataframe object in list to prepare the income of the next steps.
+        df_logs = df_logs.replace(r"[\"]", r"'")
+        list_df_logs = df_logs.values.tolist()
+        list_df_logs = [tuple(x) for x in list_df_logs]
+        self.log.info(list_df_logs)  
+         
+         # schema definition for data types of the source.
+         schema = {
+                    'cid': 'float',
+                    'review_str': 'string',
+                    'id_review': 'float'  
+                 }  
 
         # read a csv movies file with the properties required.
         df_movie = pd.read_csv(io.StringIO(list_srt_content), 
@@ -114,7 +116,7 @@ class S3ToPostgresTransfer(BaseOperator):
                          delimiter=",",
                          quotechar='"',
                          low_memory=False,                                         
-                         dtype=schema1                         
+                         dtype=schema                         
                          )
         self.log.info(df_movie)
         self.log.info(df_movie.info())
@@ -124,12 +126,7 @@ class S3ToPostgresTransfer(BaseOperator):
         list_df_movie = df_movie.values.tolist()
         list_df_movie = [tuple(x) for x in list_df_movie]
         self.log.info(df_movie.info())   
-       
-        # formatting and converting the dataframe object in list to prepare the income of the next steps.
-        df_logs = df_logs.replace(r"[\"]", r"'")
-        list_df_logs = df_logs.values.tolist()
-        list_df_logs = [tuple(x) for x in list_df_logs]
-        self.log.info(list_df_logs)   
+        
 
         # Read the file with the DDL SQL to create the table products in postgres DB.
         #file_name_log = "bootcampdb.log_reviews.sql"
@@ -182,16 +179,25 @@ with DAG('Movie_reviews',
     end = DummyOperator(task_id='end')
 
 ## Load the data to Postgres#
-load_movie_files = S3ToPostgresTransfer(
-                            task_id = 'dag_s3_to_postgres_review',
+load_log_reviews = S3ToPostgresTransfer(
+                            task_id = 'log_reviews_to_postgres',
                             schema =  'bootcampdb',
                             table= 'log_reviews',
                             s3_bucket = 'raw-movie-data',
                             s3_key = 'log_reviews.csv',
-                            s3_key1 = 'movie_review.csv',
                             aws_conn_postgres_id = 'postgres_default',
                             aws_conn_id = 'aws_default', 
                             dag=dag
 )
 
-init >> load_movie_files >> end
+load_movie_reviews = S3ToPostgresTransfer(
+                            task_id = 'movie_review_to_postgres',
+                            schema =  'bootcampdb',
+                            table= 'movie_reviews',
+                            s3_bucket = 'raw-movie-data',
+                            s3_key = 'movie_review.csv',
+                            aws_conn_postgres_id = 'postgres_default',
+                            aws_conn_id = 'aws_default', 
+                            dag=dag
+)
+init >> [load_log_reviews,load_movie_reviews] >> end
