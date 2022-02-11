@@ -70,14 +70,14 @@ class S3ToPostgresTransfer(BaseOperator):
          
         if self.wildcard_match:
             if not self.s3.check_for_wildcard_key(self.s3_key, self.s3_bucket) and not self.s3.check_for_wildcard_key(self.s3_key1, self.s3_bucket): 
-                raise AirflowException("No key matches {0}"#.format(self.s3_key,self.s3_key1)) ,self.s3_key1
+                raise AirflowException("No key matches {0}")#.format(self.s3_key,self.s3_key1)) ,self.s3_key1
             s3_key_object = self.s3.get_wildcard_key(self.s3_key, self.s3_bucket)
             s3_key_object1 = self.s3.get_wildcard_key(self.s3_key1, self.s3_bucket)
         else:
             print(self.s3.list_keys(self.s3_bucket))
             if not self.s3.check_for_key(self.s3_key, self.s3_bucket) and not self.s3.check_for_wildcard_key(self.s3_key1, self.s3_bucket): 
                 raise AirflowException(
-                    "The key {0} does not exists"#.format(self.s3_key,self.s3_key1)) ,self.s3_key1
+                    "The key {0} does not exists")#.format(self.s3_key,self.s3_key1)) ,self.s3_key1
                   
             s3_key_object = self.s3.get_key(self.s3_key, self.s3_bucket)
             s3_key_object1 = self.s3.get_key(self.s3_key1, self.s3_bucket)
