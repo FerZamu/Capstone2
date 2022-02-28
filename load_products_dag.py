@@ -96,7 +96,6 @@ class S3ToPostgresTransfer(BaseOperator):
                                 'CustomerID': 'float',
                                 'Country': 'string',
                         }  
-        return schema
             
         custom_date_parser = lambda x: datetime.strptime(x, "%m/%d/%Y %H:%M")
         
