@@ -8,17 +8,14 @@ from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
 from airflow.exceptions import AirflowException
 from airflow.operators.dummy_operator import DummyOperator
+from airflow.postgres_operator import PostgresOperator
 import pandas as pd
 import os.path
 import io
 
-
 class S3ToPostgresTransfer(BaseOperator):
-   
     template_fields = ()
-
     template_ext = ()
-
     ui_color = '#ededed'
 
     @apply_defaults
@@ -61,110 +58,101 @@ class S3ToPostgresTransfer(BaseOperator):
         self.s3 = S3Hook(aws_conn_id = self.aws_conn_id, verify = self.verify)
 
         self.log.info("Downloading S3 file")
-        self.log.info(self.s3_key + ',' + self.s3_bucket)
+        self.log.info(self.s3_key + ', ' + self.s3_bucket)
 
         # Validate if the file source exist or not in the bucket.
-         
         if self.wildcard_match:
-            if not self.s3.check_for_wildcard_key(self.s3_key,self.s3_bucket): 
-                raise AirflowException("No key matches {0}".format(self.s3_key)) 
+            if not self.s3.check_for_wildcard_key(self.s3_key, self.s3_bucket):
+                raise AirflowException("No key matches {0}".format(self.s3_key))
             s3_key_object = self.s3.get_wildcard_key(self.s3_key, self.s3_bucket)
-            
         else:
-            if not self.s3.check_for_key(self.s3_key,self.s3_bucket): 
+            if not self.s3.check_for_key(self.s3_key, self.s3_bucket):
                 raise AirflowException(
-                    "The key {0} does not exists".format(self.s3_key)) 
+                    "The key {0} does not exists".format(self.s3_key))
                   
-            s3_key_object = self.s3.get_key(self.s3_key,self.s3_bucket)
+            s3_key_object = self.s3.get_key(self.s3_key, self.s3_bucket)
 
         # Read and decode the file into a list of strings.  
         list_srt_content = s3_key_object.get()['Body'].read().decode(encoding = "utf-8", errors = "ignore")
         
-        # schema definition for data types of the source.
-        schema = {
-                    'log_id': 'float',
-                    'log': 'string'  
-                 }  
+        # schema definition for data types of the source. # Modificar
+        def f(table: Any):
+            self.table = table
+    
+            if (table =="log_reviews"):
+                schema = {
+                                'log': 'string'
+                         }
+            if (table =="movie_reviews"): 
+                schema = {
+                                'cid': 'float',
+                                'review_str': 'string'
+                         }
+            if (table =="user_purchase"): 
+                schema = {
+                                'InvoiceNo': 'float',
+                                'StockCode': 'float',
+                                'Description': 'string',
+                                'Quantity': 'float',
+                                'InvoiceDate': 'string',
+                                'UnitPrice': 'float',
+                                'CustomerID': 'float',
+                                'Country': 'string',
+                        }  
+            return schema
+            
+        custom_date_parser = lambda x: datetime.strptime(x, "%m/%d/%Y %H:%M")
         
-        # read a csv logs file with the properties required.
-        df_logs = pd.read_csv(io.StringIO(list_srt_content), 
+        # read a csv file with the properties required.
+        df_columns = pd.read_csv(io.StringIO(list_srt_content), 
                          header=0, 
                          delimiter=",",
                          quotechar='"',
-                         low_memory=False,                                         
+                         low_memory=False,
+                         parse_dates=["InvoiceDate"],
+                         date_parser=custom_date_parser,                                              
                          dtype=schema                         
                          )
-        self.log.info(df_logs)
-        self.log.info(df_logs.info())
-         
-         # formatting and converting the dataframe object in list to prepare the income of the next steps.
-        df_logs = df_logs.replace(r"[\"]", r"'")
-        list_df_logs = df_logs.values.tolist()
-        list_df_logs = [tuple(x) for x in list_df_logs]
-        self.log.info(list_df_logs)  
-         
-         # schema definition for data types of the source.
-        schema = {
-                    'cid': 'float',
-                    'review_str': 'string',
-                    'id_review': 'float'  
-                 }  
-
-        # read a csv movies file with the properties required.
-        df_movie = pd.read_csv(io.StringIO(list_srt_content), 
-                         header=0, 
-                         delimiter=",",
-                         quotechar='"',
-                         low_memory=False,                                         
-                         dtype=schema                         
-                         )
-        self.log.info(df_movie)
-        self.log.info(df_movie.info())
+        self.log.info(df_columns)
+        self.log.info(df_columns.info())
 
         # formatting and converting the dataframe object in list to prepare the income of the next steps.
-        df_movie = df_movie.replace(r"[\"]", r"'")
-        list_df_movie = df_movie.values.tolist()
-        list_df_movie = [tuple(x) for x in list_df_movie]
-        self.log.info(df_movie.info())   
-        
-
+        df_columns = df_columns.replace(r"[\"]", r"'")
+        list_df_columns = df_columns.values.tolist()
+        list_df_columns = [tuple(x) for x in list_df_columns]
+        self.log.info(list_df_columns)   
+       
         # Read the file with the DDL SQL to create the table products in postgres DB.
-        #file_name_log = "bootcampdb.log_reviews.sql"
-        #file_name_movie = "bootcampdb.movie_reviews.sql"
-        
-            #Display the content 
-        SQL_COMMAND_CREATE_TBL = """
-       CREATE SCHEMA IF NOT EXISTS bootcampdb;
-       CREATE TABLE IF NOT EXISTS bootcampdb.log_review (
-                id_review NUMERIC(100),
-                log VARCHAR(1000);       
-        CREATE TABLE IF NOT EXISTS bootcampdb.movie_review (
-                cid NUMERIC(100),
-                review_str VARCHAR(100),
-                id_review NUMERIC(100); """
-           
-        
- # execute command to create table in postgres.  
-        self.pg_hook.run(SQL_COMMAND_CREATE_TBL)  
+        #Ya esta definido
         
         # set the columns to insert, in this case we ignore the id, because is autogenerate.
-        list_target_fields = ['log']
+        
+        if (schema.tables == "log_reviews"):
+            list_target_fields = ['log']
+        if (schema.tables == "movie_reviews"):
+            list_target_fields = ['cid',
+                                  'review_str'
+                                 ]
+        if (schema.tables == "user_purchase"):
+             list_target_fields = ['invoice_number', 
+                               'stock_code',
+                               'detail', 
+                               'quantity', 
+                               'invoice_date', 
+                               'unit_price', 
+                               'customer_id', 
+                               'country']
         
         self.current_table = self.schema + '.' + self.table
         self.pg_hook.insert_rows(self.current_table,  
-                                 list_df_logs, 
+                                 list_df_columns, 
                                  target_fields = list_target_fields, 
                                  commit_every = 1000,
                                  replace = False)
+        #Check the load
+        self.request = 'SELECT * FROM ' + self.current_table
+        self.log.info(self.request).limit(5)
 
-        list_target_fields = ['review_str','id_review']
-        
-        self.current_table = self.schema + '.' + self.table
-        self.pg_hook.insert_rows(self.current_table,  
-                                 list_df_logs, 
-                                 target_fields = list_target_fields, 
-                                 commit_every = 1000,
-                                 replace = False)
  
 ## DAG NAME ##          
 with DAG('Movie_reviews', 
@@ -178,26 +166,45 @@ with DAG('Movie_reviews',
     init = DummyOperator(task_id='init')
     end = DummyOperator(task_id='end')
 
-## Load the data to Postgres#
+#Create tables
+    create_tables_task = PostgresOperator(
+    task_id='create_tables',
+    dag=dag,
+    #sql in same directory
+    sql='s3://raw-movie-data/bootcampdb.tables.sql',
+    postgres_conn_id='postgres_default'
+)
+
+#LOAD data tables
+
 load_log_reviews = S3ToPostgresTransfer(
-                            task_id = 'log_reviews_to_postgres',
+                            task_id = 'load_log_reviews',
                             schema =  'bootcampdb',
                             table= 'log_reviews',
                             s3_bucket = 'raw-movie-data',
                             s3_key = 'log_reviews.csv',
                             aws_conn_postgres_id = 'postgres_default',
-                            aws_conn_id = 'aws_default', 
-                            dag=dag
-)
+                            aws_conn_id = 'aws_default'
+)                           
 
 load_movie_reviews = S3ToPostgresTransfer(
-                            task_id = 'movie_review_to_postgres',
+                            task_id = 'load_movie_reviews',
                             schema =  'bootcampdb',
                             table= 'movie_reviews',
                             s3_bucket = 'raw-movie-data',
                             s3_key = 'movie_review.csv',
                             aws_conn_postgres_id = 'postgres_default',
-                            aws_conn_id = 'aws_default', 
-                            dag=dag
+                            aws_conn_id = 'aws_default' 
+                           
 )
-init >> [load_log_reviews,load_movie_reviews] >> end
+load_user_purchase = S3ToPostgresTransfer(
+                            task_id = 'load_user_purchase',
+                            schema =  'bootcampdb',
+                            table= 'user_purchase',
+                            s3_bucket = 'raw-movie-data',
+                            s3_key = 'user_purchase.csv',
+                            aws_conn_postgres_id = 'postgres_default',
+                            aws_conn_id = 'aws_default' 
+     
+   
+init >> create_tables_task >> [load_log_reviews,load_movie_reviews,load_user_purchase] >> end
