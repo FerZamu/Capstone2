@@ -171,7 +171,27 @@ with DAG('Movie_reviews',
     task_id='create_tables',
     dag=dag,
     #sql in same directory
-    sql='s3://raw-movie-data/bootcampdb.tables.sql',
+    sql= """ 
+    CREATE SCHEMA IF NOT EXISTS bootcampdb;
+    CREATE TABLE IF NOT EXISTS bootcampdb.user_purchases (
+    invoice_number VARCHAR(10),
+    stock_code VARCHAR(20),
+    detail VARCHAR(1000),
+    quantity BIGINT,
+    invoice_date TIMESTAMP,
+    unit_price NUMERIC(8,3),
+    customer_id VARCHAR(20),
+    country VARCHAR(20) 
+    );
+
+    CREATE TABLE IF NOT EXISTS bootcampdb.log_reviews (
+    log VARCHAR(1000)
+    );
+
+    CREATE TABLE IF NOT EXISTS bootcampdb.movie_reviews (
+    cid VARCHAR(100),
+    review_str VARCHAR(1000)    
+    );""",
     postgres_conn_id='postgres_default'
 )
 
