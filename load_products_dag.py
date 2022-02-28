@@ -85,6 +85,17 @@ class S3ToPostgresTransfer(BaseOperator):
                                 'cid': 'float',
                                 'review_str': 'string'
                          }
+        if (self.table =="user_purchase"): 
+                    schema = {
+                                'InvoiceNo': 'float',
+                                'StockCode': 'float',
+                                'Description': 'string',
+                                'Quantity': 'float',
+                                'InvoiceDate': 'string',
+                                'UnitPrice': 'float',
+                                'CustomerID': 'float',
+                                'Country': 'string',
+                        }   
         
         # read a csv file with the properties required.
         df_columns = pd.read_csv(io.StringIO(list_srt_content), 
@@ -96,31 +107,7 @@ class S3ToPostgresTransfer(BaseOperator):
                          )
         self.log.info(df_columns)
         self.log.info(df_columns.info())
-        
-         if (self.table =="user_purchase"): 
-                    schema = {
-                                'InvoiceNo': 'float',
-                                'StockCode': 'float',
-                                'Description': 'string',
-                                'Quantity': 'float',
-                                'InvoiceDate': 'string',
-                                'UnitPrice': 'float',
-                                'CustomerID': 'float',
-                                'Country': 'string',
-                        }  
-        #Case of user_purchase
-        custom_date_parser = lambda x: datetime.strptime(x, "%m/%d/%Y %H:%M")
-        df_columns = pd.read_csv(io.StringIO(list_srt_content), 
-                         header=0, 
-                         delimiter=",",
-                         quotechar='"',
-                         low_memory=False,
-                         parse_dates=["InvoiceDate"],
-                         date_parser=custom_date_parser,                                              
-                         dtype=schema                         
-                         )
-        self.log.info(df_columns)
-        self.log.info(df_columns.info())   
+       
 
         # formatting and converting the dataframe object in list to prepare the income of the next steps.
         df_columns = df_columns.replace(r"[\"]", r"'")
