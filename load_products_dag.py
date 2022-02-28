@@ -76,19 +76,16 @@ class S3ToPostgresTransfer(BaseOperator):
         list_srt_content = s3_key_object.get()['Body'].read().decode(encoding = "utf-8", errors = "ignore")
         
         # schema definition for data types of the source. # Modificar
-        def f(table: Any)-> Dict[str,str]::
-            self.table = table
-    
-            if (table =="log_reviews"):
+        if (self.table =="log_reviews"):
                 schema = {
                                 'log': 'string'
                          }
-            if (table =="movie_reviews"): 
+        if (self.table =="movie_reviews"): 
                 schema = {
                                 'cid': 'float',
                                 'review_str': 'string'
                          }
-            if (table =="user_purchase"): 
+        if (self.table =="user_purchase"): 
                 schema = {
                                 'InvoiceNo': 'float',
                                 'StockCode': 'float',
@@ -99,7 +96,7 @@ class S3ToPostgresTransfer(BaseOperator):
                                 'CustomerID': 'float',
                                 'Country': 'string',
                         }  
-            return schema
+        return schema
             
         custom_date_parser = lambda x: datetime.strptime(x, "%m/%d/%Y %H:%M")
         
