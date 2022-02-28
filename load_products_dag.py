@@ -76,7 +76,7 @@ class S3ToPostgresTransfer(BaseOperator):
         list_srt_content = s3_key_object.get()['Body'].read().decode(encoding = "utf-8", errors = "ignore")
         
         # schema definition for data types of the source. # Modificar
-        def f(table: Any):
+        def f(table: Any)-> Dict[str,str]::
             self.table = table
     
             if (table =="log_reviews"):
