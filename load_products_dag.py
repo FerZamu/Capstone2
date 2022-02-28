@@ -86,7 +86,7 @@ class S3ToPostgresTransfer(BaseOperator):
                                 'review_str': 'string'
                          }
         if (self.table =="user_purchase"): 
-                schema = {
+                schema_1 = {
                                 'InvoiceNo': 'float',
                                 'StockCode': 'float',
                                 'Description': 'string',
@@ -97,10 +97,9 @@ class S3ToPostgresTransfer(BaseOperator):
                                 'Country': 'string',
                         }  
             
-        self.log.info(schema)  
+         self.log.info(schema)  
+       
         custom_date_parser = lambda x: datetime.strptime(x, "%m/%d/%Y %H:%M")
-        
-        # read a csv file with the properties required.
         df_columns = pd.read_csv(io.StringIO(list_srt_content), 
                          header=0, 
                          delimiter=",",
@@ -108,6 +107,17 @@ class S3ToPostgresTransfer(BaseOperator):
                          low_memory=False,
                          parse_dates=["InvoiceDate"],
                          date_parser=custom_date_parser,                                              
+                         dtype=schema_1                         
+                         )
+        self.log.info(df_columns)
+        self.log.info(df_columns.info())
+        
+        # read a csv file with the properties required.
+        df_columns = pd.read_csv(io.StringIO(list_srt_content), 
+                         header=0, 
+                         delimiter=",",
+                         quotechar='"',
+                         low_memory=False,                                          
                          dtype=schema                         
                          )
         self.log.info(df_columns)
