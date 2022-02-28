@@ -97,6 +97,7 @@ class S3ToPostgresTransfer(BaseOperator):
                                 'Country': 'string',
                         }  
             
+        self.log.info(schema)  
         custom_date_parser = lambda x: datetime.strptime(x, "%m/%d/%Y %H:%M")
         
         # read a csv file with the properties required.
