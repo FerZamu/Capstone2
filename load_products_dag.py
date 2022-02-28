@@ -8,7 +8,7 @@ from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
 from airflow.exceptions import AirflowException
 from airflow.operators.dummy_operator import DummyOperator
-from airflow.postgres_operator import PostgresOperator
+from airflow.providers.postgres.operators.postgres import PostgresOperator
 import pandas as pd
 import os.path
 import io
