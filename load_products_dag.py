@@ -77,19 +77,7 @@ class S3ToPostgresTransfer(BaseOperator):
         
         # schema definition for data types of the source. # Modificar
     
-        if (self.table =="log_reviews"):
-                schema = {
-                                'id_review': 'float',
-                                'log': 'string'
-                         }
-        if (self.table =="movie_reviews"): 
-                schema = {
-                                'cid': 'float',
-                                'review_str': 'string',
-                                'id_review': 'float'
-                         }
-        if (self.table =="user_purchase"): 
-                    schema = {
+        schema = {
                                 'InvoiceNo': 'float',
                                 'StockCode': 'float',
                                 'Description': 'string',
@@ -99,25 +87,21 @@ class S3ToPostgresTransfer(BaseOperator):
                                 'CustomerID': 'float',
                                 'Country': 'string',
                         }   
-     #   custom_date_parser = lambda x: datetime.strptime(x, "%m/%d/%Y %H:%M")
-     #   parse_dates=["InvoiceDate"],
-     #  date_parser=custom_date_parser
+        custom_date_parser = lambda x: datetime.strptime(x, "%m/%d/%Y %H:%M")
 
         # read a csv file with the properties required.
         df_columns = pd.read_csv(io.StringIO(list_srt_content), 
                          header=0, 
                          delimiter=",",
                          quotechar='"',
-                         low_memory=False,                                          
+                         low_memory=False,  
+                         parse_dates=["InvoiceDate"],
+                         date_parser=custom_date_parser,                                        
                          dtype=schema                         
                          )
 
         self.log.info(df_columns)
         self.log.info(df_columns.info())
-
-
-        #Case of user_purchase
-  
 
         # formatting and converting the dataframe object in list to prepare the income of the next steps.
         df_columns = df_columns.replace(r"[\"]", r"'")
@@ -129,17 +113,8 @@ class S3ToPostgresTransfer(BaseOperator):
         #Ya esta definido
         
         # set the columns to insert, in this case we ignore the id, because is autogenerate.
-        
-        if (self.table == "log_reviews"):
-            list_target_fields = ['id_review',
-                                  'log']
-        if (self.table == "movie_reviews"):
-            list_target_fields = ['cid',
-                                  'review_str',
-                                  'id_review'
-                                 ]
-        if (self.table == "user_purchase"):
-             list_target_fields = ['invoice_number', 
+      
+        list_target_fields = ['invoice_number', 
                                'stock_code',
                                'detail', 
                                'quantity', 
@@ -156,7 +131,7 @@ class S3ToPostgresTransfer(BaseOperator):
                                  commit_every = 1000,
                                  replace = False)
         #Check the load
-        self.request = 'SELECT COUNT(*) FROM ' + self.current_table
+        self.request = 'SELECT count(*) FROM ' + self.current_table
         self.log.info(self.request)
 
  
@@ -189,42 +164,12 @@ with DAG('Movie_reviews',
     customer_id VARCHAR(20),
     country VARCHAR(20) 
     );
-
-    CREATE TABLE IF NOT EXISTS bootcampdb.log_reviews (
-    id_review NUMERIC(100),
-    log VARCHAR(1000)
-    );
-
-    CREATE TABLE IF NOT EXISTS bootcampdb.movie_reviews (
-    cid VARCHAR(100),
-    review_str VARCHAR(1000),
-    id_review NUMERIC(100)
-    );""",
+    """,
     postgres_conn_id='postgres_default'
 )
 
 #LOAD data tables
 
-load_log_reviews = S3ToPostgresTransfer(
-                            task_id = 'load_log_reviews',
-                            schema =  'bootcampdb',
-                            table= 'log_reviews',
-                            s3_bucket = 'raw-movie-data',
-                            s3_key = 'log_reviews.csv',
-                            aws_conn_postgres_id = 'postgres_default',
-                            aws_conn_id = 'aws_default'
-)                           
-
-load_movie_reviews = S3ToPostgresTransfer(
-                            task_id = 'load_movie_reviews',
-                            schema =  'bootcampdb',
-                            table= 'movie_reviews',
-                            s3_bucket = 'raw-movie-data',
-                            s3_key = 'movie_review.csv',
-                            aws_conn_postgres_id = 'postgres_default',
-                            aws_conn_id = 'aws_default' 
-                           
-)
 load_user_purchase = S3ToPostgresTransfer(
                             task_id = 'load_user_purchase',
                             schema =  'bootcampdb',
@@ -235,4 +180,4 @@ load_user_purchase = S3ToPostgresTransfer(
                             aws_conn_id = 'aws_default' 
      
 )   
-init >> create_tables_task >> load_log_reviews >>load_movie_reviews >> load_user_purchase >> end
+init >> create_tables_task >> load_user_purchase >> end
