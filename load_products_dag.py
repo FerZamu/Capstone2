@@ -120,13 +120,13 @@ class S3ToPostgresTransfer(BaseOperator):
         
         # set the columns to insert, in this case we ignore the id, because is autogenerate.
         
-        if (schema.tables == "log_reviews"):
+        if (self.table == "log_reviews"):
             list_target_fields = ['log']
-        if (schema.tables == "movie_reviews"):
+        if (self.table == "movie_reviews"):
             list_target_fields = ['cid',
                                   'review_str'
                                  ]
-        if (schema.tables == "user_purchase"):
+        if (self.table == "user_purchase"):
              list_target_fields = ['invoice_number', 
                                'stock_code',
                                'detail', 
@@ -136,7 +136,7 @@ class S3ToPostgresTransfer(BaseOperator):
                                'customer_id', 
                                'country']
         
-        self.log.info(schema.tables)
+        self.log.info(self.table)
         self.current_table = self.schema + '.' + self.table
         self.pg_hook.insert_rows(self.current_table,  
                                  list_df_columns, 
