@@ -191,7 +191,7 @@ with DAG('Movie_reviews',
     );
 
     CREATE TABLE IF NOT EXISTS bootcampdb.log_reviews (
-    id_review NUMERIC(100)
+    id_review NUMERIC(100),
     log VARCHAR(1000)
     );
 
