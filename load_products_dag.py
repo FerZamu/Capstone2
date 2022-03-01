@@ -136,6 +136,7 @@ class S3ToPostgresTransfer(BaseOperator):
                                'customer_id', 
                                'country']
         
+        self.log.info(schema.tables)
         self.current_table = self.schema + '.' + self.table
         self.pg_hook.insert_rows(self.current_table,  
                                  list_df_columns, 
