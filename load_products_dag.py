@@ -76,14 +76,17 @@ class S3ToPostgresTransfer(BaseOperator):
         list_srt_content = s3_key_object.get()['Body'].read().decode(encoding = "utf-8", errors = "ignore")
         
         # schema definition for data types of the source. # Modificar
+    
         if (self.table =="log_reviews"):
                 schema = {
+                                'id_review': 'float',
                                 'log': 'string'
                          }
         if (self.table =="movie_reviews"): 
                 schema = {
                                 'cid': 'float',
-                                'review_str': 'string'
+                                'review_str': 'string',
+                                'id_review': 'float'
                          }
         if (self.table =="user_purchase"): 
                     schema = {
@@ -96,7 +99,10 @@ class S3ToPostgresTransfer(BaseOperator):
                                 'CustomerID': 'float',
                                 'Country': 'string',
                         }   
-        
+     #   custom_date_parser = lambda x: datetime.strptime(x, "%m/%d/%Y %H:%M")
+     #   parse_dates=["InvoiceDate"],
+     #  date_parser=custom_date_parser
+
         # read a csv file with the properties required.
         df_columns = pd.read_csv(io.StringIO(list_srt_content), 
                          header=0, 
@@ -105,9 +111,13 @@ class S3ToPostgresTransfer(BaseOperator):
                          low_memory=False,                                          
                          dtype=schema                         
                          )
+
         self.log.info(df_columns)
         self.log.info(df_columns.info())
-       
+
+
+        #Case of user_purchase
+  
 
         # formatting and converting the dataframe object in list to prepare the income of the next steps.
         df_columns = df_columns.replace(r"[\"]", r"'")
@@ -121,10 +131,12 @@ class S3ToPostgresTransfer(BaseOperator):
         # set the columns to insert, in this case we ignore the id, because is autogenerate.
         
         if (self.table == "log_reviews"):
-            list_target_fields = ['log']
+            list_target_fields = ['id_review',
+                                  'log']
         if (self.table == "movie_reviews"):
             list_target_fields = ['cid',
-                                  'review_str'
+                                  'review_str',
+                                  'id_review'
                                  ]
         if (self.table == "user_purchase"):
              list_target_fields = ['invoice_number', 
