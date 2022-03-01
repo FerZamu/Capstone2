@@ -156,8 +156,8 @@ class S3ToPostgresTransfer(BaseOperator):
                                  commit_every = 1000,
                                  replace = False)
         #Check the load
-        self.request = 'SELECT * FROM ' + self.current_table
-        self.log.info(self.request).limit(5)
+        self.request = 'SELECT COUNT(*) FROM ' + self.current_table
+        self.log.info(self.request)
 
  
 ## DAG NAME ##          
