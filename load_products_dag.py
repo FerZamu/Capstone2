@@ -191,12 +191,14 @@ with DAG('Movie_reviews',
     );
 
     CREATE TABLE IF NOT EXISTS bootcampdb.log_reviews (
+    id_review NUMERIC(100)
     log VARCHAR(1000)
     );
 
     CREATE TABLE IF NOT EXISTS bootcampdb.movie_reviews (
     cid VARCHAR(100),
-    review_str VARCHAR(1000)    
+    review_str VARCHAR(1000),
+    id_review NUMERIC(100)
     );""",
     postgres_conn_id='postgres_default'
 )
