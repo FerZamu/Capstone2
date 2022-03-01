@@ -220,4 +220,4 @@ load_user_purchase = S3ToPostgresTransfer(
                             aws_conn_id = 'aws_default' 
      
 )   
-init >> create_tables_task >> [load_log_reviews,load_movie_reviews,load_user_purchase] >> end
+init >> create_tables_task >> load_log_reviews >>load_movie_reviews >> load_user_purchase >> end
